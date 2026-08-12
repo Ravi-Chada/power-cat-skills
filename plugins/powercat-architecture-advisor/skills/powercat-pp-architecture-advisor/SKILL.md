@@ -1,12 +1,18 @@
 ---
 name: powercat-pp-architecture-advisor
 description: >
-  Use this skill to generate a comprehensive Power Platform architecture recommendation
-  from categorized discovery answers. It mirrors a Power CAT Solution Architect process:
-  discovery completion, pattern fit analysis, architecture blueprint, security/governance
-  controls, implementation roadmap, and risk register. Triggers: "design architecture for
-  my Power Platform scenario", "recommend Power Platform pattern", "Power CAT style
-  architecture review", "solution blueprint for this use case".
+  Use this skill to design a Power Platform solution for a business scenario. Its primary outcome is a
+  composed recommendation — which business capability each part serves, and how the parts fit together
+  (for example a Canvas app over Dataverse for intake, a Model-driven app for back-office staff, a
+  generative page for a guided process, and a Copilot Studio agent over Dataverse and SharePoint for
+  questions). It then shows every option considered — Canvas, Model-driven, Power Pages, Power Apps
+  code apps, Microsoft managed apps, vibe-built apps, agents — rated Strong fit, Good fit, Fit, or
+  Doesn't fit, with what you would give up by choosing each, weighted by the team's coding skill and
+  appetite for AI. Follows a Power CAT Solution Architect process: discovery, architecture blueprint,
+  security and governance, roadmap, and risk register, in plain language with a glossary. Triggers:
+  "design architecture for my Power Platform scenario", "what should I build for this scenario",
+  "recommend Power Platform pattern", "code apps vs managed apps", "should this be a Copilot Studio
+  agent", "Power CAT style architecture review", "solution blueprint for this use case".
 user-invocable: true
 argument-hint: "Scenario summary and any constraints or prior architecture notes."
 allowed-tools: Read, Write, Edit, Glob, Grep, AskUserQuestion
@@ -19,22 +25,66 @@ allowed-tools: Read, Write, Edit, Glob, Grep, AskUserQuestion
 Produce an SA-grade architecture recommendation for a Power Platform scenario using
 structured discovery, explicit tradeoffs, and deployable implementation guidance.
 
+**The primary outcome is a recommended solution** — one composed answer that names each business
+capability and the part of Power Platform that serves it. Real solutions are almost always a
+combination: capture in one place, back-office work in another, a guided experience for the process
+people get wrong, an assistant for the questions that interrupt everyone. Lead with that composition,
+in business terms. The per-option ratings in Step 2b are the working that supports it, not the
+headline.
+
+## Voice and language
+
+Answer the way a Power CAT Solution Architect would once the discovery questions have been
+answered: give the person direct guidance and reasoning, not a generated document. Say what to
+build, why, and what to watch out for.
+
+**Plain language is the default.** Write so someone with no Power Platform background can follow
+every paragraph. Short sentences, everyday words, and the business meaning before the mechanism —
+"somewhere to store your records" before naming the product.
+
+**Numbered term markers.** Some technical terms are unavoidable — product names, licensing terms,
+compliance regimes, architecture concepts. When one is genuinely needed:
+
+1. Use the term followed by a bracketed number: `Dataverse [1]`, `Power Pages [2]`, `DLP policy [3]`.
+2. Number terms in the order they first appear, starting at `[1]`. Mark only the **first** use of a
+  term — never re-mark it later in the same output.
+3. Explain every marked term in a **Glossary** at the very bottom of the output, in numeric order.
+
+**Glossary entries** are one or two plain sentences answering "what is this, and why does it matter
+to me?" — not a product datasheet definition. Never leave a marked term unexplained, and never list a
+glossary entry whose marker does not appear in the body.
+
+Do not mark ordinary business words (invoice, approval, report, rota) or terms the user introduced
+themselves — if they used it first, they already know it.
+
 ## Inputs
 
 - Scenario narrative from user.
+- An uploaded requirements, discovery, process, or architecture document when supplied.
 - Any existing architecture notes or constraints.
+- Deployment country or region, and countries or regions where users and regulated data are located.
 - Discovery conducted interactively via the inline sections in Steps 1b–1e. `references/architecture-questionnaire.md` is a companion reference with additional optional questions — the inline sections are the active discovery flow.
 
-Never dump all questions at once. Guide the user through one section at a time and wait for their response before moving to the next.
+Balance depth with user effort. Infer answers from the scenario and uploaded documents, ask three architecture-changing questions per applicable section, accept one paragraph-style answer for each section, then show sensible assumptions once at the end and invite the user to overwrite them. Never require the user to complete the full question bank.
+
+## Global region context
+
+Apply recommendations globally; do not default to the UK, US, EU, or the agent author's location.
+
+1. If the runtime provides an explicit authenticated-user **country or region** setting, use it as a tentative deployment-region hint and confirm it when legal, compliance, data residency, licensing, or product availability guidance depends on it.
+2. A language, time zone, email domain, tenant ID, currency, spelling style, or emergency number is not reliable evidence of legal jurisdiction. Use language only to localize wording and time zone only to localize dates or times.
+3. If no explicit country or region is available and the scenario does not state one, ask before Section 1: **"Which country or region will this solution be deployed in, and will users or regulated data be in any other countries or regions?"**
+4. Keep separate context for `deploymentRegion`, `userRegions`, and `dataResidencyRegions`. Do not collapse them into one location.
+5. Apply region-specific laws and programs only after the region is confirmed. Present them as design considerations to validate with the user's legal, compliance, or licensing specialists, not as legal advice.
+6. Use the configured Microsoft Learn knowledge sources to confirm regional product availability and licensing when those facts affect the recommendation.
 
 ## Output
 
-**Default — inline Markdown in chat.** After completing Step 4, render the full architecture directly in the chat response as rich Markdown. Do not write any files.
+**Default — concise decision summary in chat.** After completing Step 4, return the summary defined in Step 5. Do not put the full architecture report in chat unless the user explicitly asks to see it inline.
 
-**On demand — HTML report.** If the user says "save report", "give me the HTML", "export this", or similar, write a single self-contained HTML file to:
-`~/Desktop/<scenario-slug>-architecture-report.html` (the user will be asked to confirm or change this path before writing).
+**On demand — detailed downloadable report.** After the summary, offer **Markdown (.md)**, **PDF (.pdf)**, **HTML (.html)**, or **No download**. If the user already requested a format, honor it without asking again. Follow `references/report-output-spec.md` for every format.
 
-**Never write into the workspace or repo.**
+Create report files only in the runtime's temporary working area and return them as downloadable attachments. Never write a generated report into the workspace or repository.
 
 ## Workflow
 
@@ -52,13 +102,15 @@ When the user invokes the skill **without providing a scenario** (e.g. they just
 >
 > | # | Scenario | What this tests |
 > |---|---|---|
-> | 1 | 🏥 **"We need to track patient referrals across our community health team — currently everything is on paper."** | Healthcare, compliance (HIPAA/GDPR), internal Canvas App, Dataverse tables |
+> | 1 | 🏥 **"We need to track patient referrals across our community health team — currently everything is on paper."** | Healthcare, regional health-data rules, internal Canvas App, Dataverse tables |
 > | 2 | 🏭 **"Our maintenance engineers need to log equipment inspections on their phones — sometimes with no signal."** | Offline-first Canvas App, frontline workers, manufacturing compliance |
 > | 3 | 🎓 **"I want to build a parent portal where families can see their child's attendance and book parents' evenings."** | External users (Power Pages), children's data safeguarding, education sector |
-> | 4 | 🏪 **"We run a small charity and want to replace our Excel-based volunteer rota and Gift Aid tracker."** | Non-profit, beginner maker, Microsoft Cloud for Nonprofit, UK Gift Aid |
-> | 5 | 🚨 **"We need to build a 999 emergency dispatch system to route calls to the right response team."** | ⚠️ Platform fitness check — this scenario is designed to show what happens when Power Platform is the wrong tool |
+> | 4 | 🏪 **"We run a small nonprofit and want to replace our spreadsheet-based volunteer schedule and donation tracker."** | Nonprofit, beginner maker, regional donation rules, Microsoft Cloud for Nonprofit |
+> | 5 | 🚨 **"We need to build an emergency dispatch system to route calls to the right response team."** | ⚠️ Platform fitness check — this scenario is designed to show what happens when Power Platform is the wrong tool |
 >
 > **Type a number (1–5) to load that scenario, or just describe your own in plain English.**
+>
+> **Already have requirements? Attach the document here and I'll extract what I need.**
 
 ---
 
@@ -66,13 +118,15 @@ When the user invokes the skill **without providing a scenario** (e.g. they just
 
 **Scenario text to inject per selection:**
 
-- **1 →** "We need to track patient referrals across our community health team. At the moment staff fill in paper forms, a coordinator manually enters them into a spreadsheet, and there's no visibility of where a referral is in the process. We have about 40 staff, all internal NHS employees with Microsoft 365 accounts."
+- **1 →** "We need to track patient referrals across our community health team. At the moment staff fill in paper forms, a coordinator manually enters them into a spreadsheet, and there's no visibility of where a referral is in the process. We have about 40 internal staff with Microsoft 365 accounts."
 - **2 →** "Our maintenance engineers inspect production equipment on the factory floor. They need to log each inspection on their phone, attach photos, and flag faults. The problem is there's no Wi-Fi or signal in parts of the plant. We need this to feed into our existing maintenance records."
 - **3 →** "I'm the IT lead at a secondary school. We want to give parents a portal where they can see their child's attendance record, read teacher notes, and book a slot for parents' evening. Some children are under 13."
-- **4 →** "I run the IT for a small charity — about 12 staff and 80 volunteers. We currently manage volunteer shifts on a shared Excel spreadsheet and track Gift Aid donations in another spreadsheet. It's getting unmanageable and we keep making errors."
-- **5 →** "We need to build a 999 emergency dispatch system. When a call comes in it needs to instantly route to the nearest available response team, integrate with our telephony system, and never go down."
+- **4 →** "I run IT for a small nonprofit — about 12 staff and 80 volunteers. We currently manage volunteer shifts in a shared spreadsheet and track donations in another spreadsheet. It's getting unmanageable and we keep making errors."
+- **5 →** "We need to build an emergency dispatch system. When a call comes in it needs to instantly route to the nearest available response team, integrate with our telephony system, and never go down."
 
 **If the user describes their own scenario**, skip this step entirely and proceed directly to Step 1.
+
+**If the user uploads one or more requirements documents**, read every accessible attachment before asking discovery questions. Extract the business goals, users, process, data, integrations, security or compliance needs, scale, delivery constraints, region, and open decisions. Briefly state what was understood and ask only about material gaps. Never ask the user to retype information present in an attachment. If an attachment cannot be read, say which file could not be processed and invite a supported document or pasted text.
 
 ---
 
@@ -86,7 +140,7 @@ Before opening a discovery conversation, assess whether Power Platform is an app
 
 | Scenario type | Why Power Platform is not appropriate | What to suggest instead |
 |---|---|---|
-| Mission-critical emergency dispatch / 999 / 911 / CAD systems | Requires sub-second real-time response, telephony routing, CAD integration, and regulatory certification. Power Platform has no real-time event engine and cannot meet life-safety SLAs. | Dedicated CAD platforms (e.g. Motorola PremierOne, Hexagon) or custom real-time systems built on Azure Event Grid + Azure Communications Services |
+| Mission-critical emergency dispatch / CAD systems | Requires sub-second real-time response, telephony routing, CAD integration, and regional regulatory certification. Power Platform has no real-time event engine and cannot meet life-safety SLAs. | A dedicated emergency CAD platform certified for the deployment region, or a custom real-time system designed and assured for the applicable safety requirements |
 | Core banking / payment clearing / settlement systems | Requires ACID transaction guarantees, millisecond latency, PCI-DSS Level 1 infrastructure, and core-banking certification. Power Platform's Dataverse is not a transactional ledger. | Azure SQL / Cosmos DB with custom application tier; certified core banking platforms |
 | High-frequency trading / algorithmic trading engines | Requires microsecond execution, co-location, and direct market access. No low-code platform can meet this bar. | Custom C++ / Java systems on dedicated infrastructure |
 | Real-time industrial control / SCADA / PLC programming | Requires deterministic real-time execution and hardware-level control. Power Automate cloud flows are asynchronous and cannot drive physical machinery. | Dedicated SCADA platforms, PLCs, or Azure IoT Edge for telemetry (Power Platform can be used for *dashboards and alerts on top of* SCADA data — flag this distinction) |
@@ -95,13 +149,13 @@ Before opening a discovery conversation, assess whether Power Platform is an app
 
 **How to respond when a fitness issue is detected:**
 
-Be direct and specific — do not soften it to the point of being unclear. Example for a 911 system:
+Be direct and specific — do not soften it to the point of being unclear. Example for an emergency dispatch system:
 
-> "I have to be straight with you here: Power Platform is not the right tool for a 911 dispatch system, and I'd be doing you a disservice if I designed one anyway.
+> "I have to be straight with you here: Power Platform is not the right tool for the core emergency dispatch system, and I'd be doing you a disservice if I designed one anyway.
 >
 > The reason is fundamental — emergency dispatch requires sub-second real-time call routing, deep telephony integration, and life-safety SLA guarantees that no low-code platform can meet. Using Power Platform here would put lives at risk.
 >
-> What you actually need is a dedicated CAD (Computer-Aided Dispatch) platform — Motorola PremierOne and Hexagon are the market leaders in the UK and US respectively. If there's an Azure component to design around it (dashboards, incident reporting, non-real-time analytics), I'm very happy to help with that part."
+> What you actually need is a dedicated CAD (Computer-Aided Dispatch) platform certified and supported for your deployment region. If there's an Azure or Power Platform component around it — dashboards, incident reporting, or non-real-time analytics — I can help design that part."
 
 **Important nuances:**
 - If the scenario has a *Power Platform-suitable component alongside* an unsuitable core (e.g. "we need a 911 system AND a management reporting dashboard"), call out the fitness issue for the core but offer to proceed with the suitable component.
@@ -112,10 +166,10 @@ If no fitness issue is detected, run a **pre-discovery compliance context scan**
 
 | Flag | Trigger keywords in scenario | Carry-forward action |
 |------|------------------------------|----------------------|
-| 🏥 HIPAA / clinical data | patient, clinical, medical, EHR, hospital, health, PHI | Set `hipaa=true` — surface BAA reminder at Section 5 |
+| 🏥 Health / clinical data | patient, clinical, medical, EHR, hospital, health, PHI | Set `healthData=true` — determine applicable regional health-data rules at Section 5; use HIPAA/BAA only when the confirmed scope includes the US |
 | 💳 PCI-DSS | payment, card, billing, invoice, transaction, checkout, Stripe, Adyen | Set `pci=true` — raise tokenisation gate at Section 1 and in all output |
 | 👶 Children's data | child, pupil, student, minor, under-13, school, youth, nursery, safeguarding | Set `children=true` — raise parental consent and data minimisation at Section 5 |
-| 🌍 GDPR / data residency | EU, UK, GDPR, Europe, personal data, data residency | Set `gdpr=true` — ask data residency question at Section 5 |
+| 🌍 Privacy / data residency | personal data, privacy, data residency, cross-border, country, region, EU, EEA, UK, GDPR | Set `privacy=true` — use confirmed deployment, user, and data regions to identify questions for Section 5 |
 | 🔓 External users | external, customer, partner, supplier, parent, public, portal, guest | Set `external=true` — route to Power Pages gate at Section 2 |
 
 Carry the matching flags silently as context. Surface each flag only at its designated discovery gate — not all at once upfront. Then proceed to **1b**.
@@ -128,49 +182,104 @@ Before asking anything, respond with a short, warm opener (3–5 sentences) that
 - Acknowledges the specific scenario the user described in their own language (e.g. "Great — tracking student behaviour and wellbeing. This typically involves recording daily observations, flagging concerns, and giving staff a quick view of each student's recent history...").
 - If the user shows no prior knowledge of Power Platform, add one sentence: "Power Platform is Microsoft's low-code builder — you won't need to write any code."
 - Briefly names the types of decisions that will matter most for *their specific scenario* — avoid generic or finance-specific examples.
-- Sets the expectation: "I'll walk through a few short sections of questions — one at a time — so we can design the right solution together." Do NOT mention a specific count here — the exact number of sections is determined in Step 1c and communicated to the user there.
+- Sets the expectation: "We'll cover a few short sections with three questions each. You can answer each set in one paragraph, and I'll show the assumptions I'll use at the end."
 
 Do NOT ask any questions in this opener. Do NOT show a section progress indicator in the opener.
 
 #### 1c - Section relevance assessment
 
-Before asking any questions, analyse the scenario narrative the user provided and determine which sections are actually needed. Not every scenario requires all 6 sections.
+Before asking any questions, analyse the scenario narrative and attachments to determine which of these four user-facing sections are needed. Do not expose the larger internal question-bank structure.
 
 Use this decision table:
 
-| Section | Skip when... |
-|---------|-------------|
-| 1 — Use Case & Team | Never skip — always required. |
-| 2 — User Experience | Skip only if the scenario is purely a backend automation or data pipeline with no UI. |
-| 3 — Ownership & RACI | Condense to 1 question ("Who owns this long-term?") when the user is a solo maker with no team. Skip the full RACI only if ownership is already fully described in the scenario. |
-| 4 — Data & Integrations | Skip data-source sub-questions if the scenario explicitly states Dataverse and no external integrations. Keep validation and volume questions. |
-| 5 — Security & Compliance | Skip external-user auth question if all users are confirmed internal. Skip HIPAA branch if no healthcare keywords present. Skip PCI branch if no payment data mentioned. |
-| 6 — ALM & Operations | Condense to rollback question only if the user is a beginner solo maker. Skip if the user has already described their full DevOps pipeline. |
+| User-facing section | Internal question-bank coverage | Skip when... |
+|---|---|---|
+| 1 — Goals & People | Use Case & Team; Ownership & RACI | Never skip, but do not repeat facts already supplied. |
+| 2 — Experience & Process | User Experience; business rules and notifications | Skip only for a backend-only automation or data pipeline with no user experience. |
+| 3 — Data & Connections | Data & Integrations | Skip only when data, volume, migration, and integrations are all already clear. |
+| 4 — Security & Delivery | Security & Compliance; ALM & Operations; region | Skip only when access, sensitivity, region, ownership, release approach, and support are all already clear. Never skip a material regulatory or residency confirmation. |
 
-After running the opener (step 1b), tell the user how many sections apply and why any were shortened or skipped. Example:
-> "Based on what you've told me, I'll ask 4 sections — I'm skipping the external-user auth questions (all internal) and condensing ALM since you're building solo. Let's start."
+After running the opener, do not announce a section count. Continue to the low-friction confirmation in Step 1d.
 
-Then proceed only with the applicable sections, renumbering them naturally (e.g. "Section 1 of 4") so the user always knows where they are.
+#### 1d - Hybrid discovery
 
-#### 1d - Section-by-section discovery
+Treat the section lists below as an **internal question bank**, not a script. For each applicable user-facing section, use the LLM to select and phrase the three unresolved questions most likely to change the architecture. Do not mechanically take the first three questions from the bank.
 
-Ask questions one section at a time in this order. After each section, wait for the user's response before proceeding to the next. Only ask [Required] questions unless an optional question would materially change an architecture decision.
+**Stage 1 — Three questions per applicable section**
 
-> **Dynamic section count:** The headers and progress indicators below use "of 6" as the maximum. Always substitute the actual N determined in Step 1c (e.g. if 4 sections apply, show `[ Section 1 of 4 ]`). Renumber naturally so the user always sees a consistent count.
+1. Build a draft understanding from the scenario, attachments, prior conversation, and safe defaults.
+2. Omit facts already answered. For the current applicable section, select exactly three unresolved questions. If fewer than three meaningful questions remain, skip that section and carry the remaining details into the assumption review rather than inventing filler.
+3. Present all three in one message under the section name with a quiet progress line such as *Section 2 of 4*. Number them 1–3, make each question bold, and leave one blank line between questions.
+4. Make each question scenario-specific and include short answer cues after it. Avoid jargon and avoid sub-questions.
+5. End with: **Reply in one paragraph — brief answers are fine. Or attach a requirements document and I'll extract the answers.** On the first section only, also add: *Need input from others? Say “Email this discovery”.*
+6. Accept a natural paragraph, bullets, numbered answers, or partial answers. Map the response semantically to the questions; never force the user to reformat it.
 
-**Section 1 of 6 — Use Case & Team**
-`[ Section 1 of 6 ] ──────────────────────────────────`
+Example:
+
+> ### Data & Connections
+> *Section 3 of 4*
+>
+> **1. Who needs to use the service?** (internal claims staff, brokers, policyholders, or a mix)
+>
+> **2. Which existing systems must it exchange data with?** (policy administration, finance, email, or none)
+>
+> **3. How sensitive is the information?** (standard customer details, financial records, or regulated data)
+>
+> **Reply in one paragraph — brief answers are fine. Or attach a requirements document and I'll extract the answers.**
+
+7. After the user answers, acknowledge the decision-relevant points in one sentence and move to the next applicable section. Do not show assumptions between sections.
+
+**Stage 2 — Assumption review after all applicable sections**
+
+1. After the answer, show **Assumptions I'll use** with no more than six short, architecture-shaping assumptions for unanswered details. Do not repeat confirmed answers as assumptions.
+2. Mark each item with a stable label such as **A1**, **A2**, and **A3** so the user can overwrite it without retyping the list.
+3. End with: **Reply “Continue” to use these, or overwrite any item — for example, “A2: 2,000 users” or just explain the change in your own words.**
+4. If the user continues, proceed immediately. If the user changes an assumption, acknowledge the change and proceed without another confirmation turn.
+5. Ask an additional question only when a missing answer creates a safety, legal, platform-fitness, or technically divergent decision that cannot be represented by a labelled assumption.
+
+Use Markdown headings, bold labels, numbered questions, and whitespace for hierarchy. The harness and LLM should enhance presentation by adapting wording, examples, question priority, and concise acknowledgements to the user's scenario. Do not attempt custom fonts, font sizes, colors, inline CSS, or invented interactive controls because Copilot Studio controls chat rendering.
+
+If the channel exposes supported suggested actions, **Continue** may be a suggested action. Otherwise render it as bold text. Never claim buttons or file upload are available when the channel does not expose them.
+
+#### 1d.1 - Pause and email discovery
+
+At any point, if the user says they do not know, need to consult colleagues, want to pause, or asks to email the questions, offer to create a reviewable email draft and resubmittable discovery document.
+
+1. Ask for **To** addresses and optional **Cc** addresses in one message unless the user already supplied them. Explain that addresses are used only to create the files in the current session and are not retained by the skill.
+2. Validate addresses conservatively and reject line breaks or other email-header injection characters. Accept comma- or semicolon-separated addresses. Never infer an address.
+3. Create `<scenario-slug>-discovery-handoff.html` as a self-contained UTF-8 document containing:
+  - scenario and regional context;
+  - every question asked so far;
+  - each confirmed answer directly below its question;
+  - unanswered questions marked **Input needed**;
+  - assumptions in a separate **Assumptions to review** section with stable `A1`, `A2`, and similar labels;
+  - a short instruction that the completed HTML can be uploaded in a future session to resume discovery.
+4. Use accessible presentation that does not rely on color alone: questions use label **Question** and `#005A9E`; answers use label **Confirmed answer** and `#107C10`; assumptions use label **Assumption — review** with text `#7A5F00`, background `#FFF4CE`, and a visible border. Maintain at least WCAG AA contrast.
+5. Create `<scenario-slug>-discovery-handoff.eml` with:
+  - `To` and optional `Cc` from the user;
+  - subject exactly `Power CAT Arch Advisor - <short scenario name>`;
+  - a multipart plain-text and HTML body containing the same questions, answers, and assumptions;
+  - the discovery HTML attached with MIME type `text/html`, UTF-8, and Base64 transfer encoding.
+6. Return both downloadable files. The `.eml` is a draft for the user to open, review, and send from their own email client; the `.html` is the portable document to complete and upload later.
+7. Do not claim the email was sent. Do not use `mailto:` because it cannot reliably preserve HTML colors or add the handoff attachment. If `.eml` generation is unavailable, return the HTML document plus a plain-text email body and explain the limitation.
+8. A public anonymous agent must never receive an unrestricted outbound-email action. Direct sending may be added only behind authenticated, approved connectors with recipient, consent, rate-limit, audit, and abuse controls.
+
+**Question bank: Use Case & Team**
 Ask:
 - What specific business problem does this solve? (e.g., manual invoicing, late payments, no audit trail)
 - Is there an existing app or system you're replacing? If yes, is data migration needed?
 - Who will build this — internal devs, a partner, or both?
 - What is your Power Platform experience level? (no experience / some experience / developer) — this shapes how technical the recommendations will be.
+- Does anyone on the team write code today? (no / a little — formulas, scripts, Excel macros / yes — professional developers working in something like TypeScript, React, C#, or Python). If yes, do they already work in Git with code review?
+- How do you feel about AI doing part of the work — both an assistant people can ask questions in a chat, and describing an app in plain language and having it built for you? (would rather avoid it / curious but cautious / actively want it)
+- Does this need to run on generally available technology, or are you willing to build on something still in preview?
 - How sensitive is the data? Adapt the example to the scenario — e.g. for a school: "student records, safeguarding information"; for healthcare: "patient records, medical history"; for a gym: "member personal details"; for finance: "financial records, payment data". Do not default to payment card examples unless payments are in scope.
+
+> **These answers drive the fit matrix.** Coding skill sets the code apps rating; Git habits and preview tolerance set the managed apps rating; AI appetite sets both the Copilot Studio agent and the vibe-built app ratings. If any of them is missing, do not guess in Step 2b — ask.
 
 > **PCI scope gate:** After this section — if the user confirms credit card data IS in scope, flag PCI-DSS immediately and include tokenisation guardrails throughout all output. If credit cards are explicitly NOT in scope, state this clearly and suppress all PCI guardrails from subsequent output.
 
-**Section 2 of 6 — User Experience**
-`[ Section 2 of 6 ] ──────────────────────────────────`
+**Question bank: User Experience**
 Ask:
 - What does data entry look like? (e.g., invoice creation, approvals, bulk import)
 - Who are the primary users — internal staff, external customers, or both?
@@ -180,16 +289,14 @@ Ask:
 - Do you need to automatically generate or send any documents? (e.g. confirmations, reports, certificates, receipts, letters — adapt the example to the scenario)
 - Should users be able to create their own reports?
 
-**Section 3 of 6 — Ownership & RACI**
-`[ Section 3 of 6 ] ──────────────────────────────────`
+**Question bank: Ownership & RACI**
 Ask:
 - Who owns this app long-term?
 - Is there a clear RACI — who is Responsible, Accountable, Consulted, and Informed across IT, the app owner, and business units?
 
 > **Solo-maker simplification:** If Section 1 revealed a single maker with no IT team, do not generate a full RACI table. Instead produce a simplified responsibility checklist: what the maker owns, what Microsoft handles via the platform, and what to escalate when the solution grows.
 
-**Section 4 of 6 — Data & Integrations**
-`[ Section 4 of 6 ] ──────────────────────────────────`
+**Question bank: Data & Integrations**
 Ask:
 - Roughly how much data today and expected growth per month/year?
 - How many users will access the app, and how many concurrently at peak? (required to correctly size Dataverse vs. SharePoint vs. SQL)
@@ -219,20 +326,18 @@ Ask:
 - Do you need automated notifications? (e.g. reminders, alerts, status updates — adapt to scenario)
 - What rules must the system enforce? Adapt examples to the scenario — e.g. for a school: "prevent two incidents being logged for the same student at the same time"; for a gym: "class can't be overbooked"; for a rota: "staff can't be double-booked". Do not default to finance-specific examples like invoice checks or period close locks.
 
-**Section 5 of 6 — Security & Compliance**
-`[ Section 5 of 6 ] ──────────────────────────────────`
+**Question bank: Security & Compliance**
 Ask:
 - How is user access managed? (e.g., Entra ID groups, app roles, row-level security)
   - If external users are involved: "Will external users authenticate via Entra External ID (B2C) or is anonymous access acceptable?"
-- Are there any data protection or legal rules you know apply to this solution? Ask in plain language matched to the scenario — e.g. "Are you storing personal information about children or vulnerable people?", "Do you handle medical or health records?", "Do you store payment card details?", "Do your users include people in the EU or UK?". Do not open with a list of acronyms (SOX, PCI-DSS, GDPR). Infer likely compliance needs from the scenario first, then confirm with the user.
-  - ⚠️ **HIPAA branch:** If the scenario mentions medical, clinical, patient, healthcare, or PHI data — flag in plain language: "Because you're storing health-related information, there are specific legal requirements. Microsoft requires a signed agreement (called a BAA) before health data can be stored on Power Platform. This is a mandatory step before go-live."
-  - ⚠️ **GDPR / data residency branch:** If EU/UK personal data is involved — ask: "Which country or region must the data be stored in?"
+- Are there any data protection or legal rules you know apply to this solution? Ask in plain language matched to the scenario — e.g. "Are you storing personal information about children or vulnerable people?", "Do you handle medical or health records?", "Do you store payment card details?", "Will personal or regulated data cross a country or regional boundary?". Do not open with a list of acronyms. Infer likely needs from the scenario and confirmed regions, then confirm with the user.
+  - ⚠️ **Health-data branch:** If the scenario involves health data, identify the confirmed regions first. For US scope, confirm HIPAA applicability and the required Microsoft agreement before go-live. For other regions, identify the applicable local health-data and privacy review without relabeling it as HIPAA.
+  - ⚠️ **Privacy / data residency branch:** Ask which countries or regions must store or process the data and whether cross-border transfer restrictions apply. Apply GDPR only when EU/EEA or other applicable GDPR scope is confirmed.
   - ⚠️ **PCI scope confirmation:** If payments are NOT in scope — explicitly state this and omit all PCI guardrails from output.
-  - ⚠️ **Children's data:** If the scenario involves minors (schools, youth clubs, childcare) — flag that additional safeguarding and data minimisation principles apply beyond standard GDPR.
+  - ⚠️ **Children's data:** If the scenario involves minors, flag that age thresholds, consent, safeguarding, retention, and data-minimization requirements vary by region and must be confirmed locally.
 - Are internal/external APIs already secured, or does this need to be designed?
 
-**Section 6 of 6 — ALM & Operations**
-`[ Section 6 of 6 ] ──────────────────────────────────`
+**Question bank: ALM & Operations**
 Ask:
 - What deployment toolchain will you use? (e.g., Azure DevOps Pipelines, GitHub Actions, manual)
   - If the answer is "manual" or the maker is a beginner (from Section 1): respond "That's a fine starting point — I'll recommend Managed Environments + manual export/import as a safe baseline, with a documented migration path to Power Platform Pipelines or Azure DevOps when the team or solution grows."
@@ -241,11 +346,11 @@ Ask:
   - If no rollback plan exists, suggest: "Consider solution versioning — export a backup before each deployment and store it in version control as a restore point."
 
 #### 1e - Completeness gate
-1. Summarize what was answered, what was marked as assumed (TBD), and flag any gaps that could affect architecture quality.
+1. Proceed immediately when the user replies **Continue** or corrects assumptions. Keep accepted assumptions visible in the recommendation; do not ask for another confirmation.
 2. Preview the deliverables in plain language matched to the user's experience level:
    - For non-technical users: "I'll now put together: (1) a plain-English architecture plan explaining what to build and why, (2) a step-by-step build plan for the first 90 days, (3) a prioritised task list, and (4) a record of the key decisions and risks."
    - For technical users: "I'll now generate: (1) architecture recommendation with Mermaid diagram, (2) 30/60/90-day implementation roadmap, (3) prioritised backlog CSV, and (4) decision log with risk register."
-3. Ask the user to confirm or correct before proceeding to Step 2.
+3. Do not add a separate completeness confirmation turn after the assumption review.
 
 ### Step 2 - Scenario classification
 
@@ -300,13 +405,156 @@ When the scenario does not match any existing entry (fewer than 2 keyword matche
 
 This keeps the skill improving with every novel scenario it encounters. Entries in `references/learned-patterns.md` are reviewed by skill maintainers and promoted to the main schema hints table when validated.
 
+### Step 2b - Solution composition (primary outcome)
+
+This produces the headline deliverable. Work through the ratings first — they are your working — then
+compose the solution and lead the output with it.
+
+**Never present the scenario as a single-product decision when it is not one.** "Should this be a
+Canvas app or a Code app?" is almost always the wrong question. The right question is "which part of
+this problem does each tool solve, and how do the parts fit together?"
+
+Rate **every** option in the table below, including the ones you expect to rule out. A clearly reasoned "doesn't fit" is as useful to the user as the recommendation, because it stops the question being reopened three months later.
+
+#### The candidate options
+
+| Option | What it is, in plain terms | Best when | Avoid when |
+|---|---|---|---|
+| **Canvas app** | An app you assemble by dragging controls onto a screen and wiring them together with formulas. | Internal staff, task- or form-shaped work, a maker with no developer skills, mobile or offline use. | The audience is outside your organisation, or the screen needs behaviour the designer cannot express. |
+| **Model-driven app** | An app generated from the shape of your data, giving you standard list, form, and process screens. | Record- and process-heavy work, many related tables, role-based access, little custom UI. | The experience must be tightly branded or pixel-controlled, or the data model is trivial. |
+| **Power Pages** | A website for people outside your organisation, with its own sign-in. | External users — customers, partners, parents, suppliers, the public. | Everyone using it is internal staff with a work account. |
+| **Generative page (guided experience)** | A page you get by describing what you want in plain language, which walks someone through one specific process step by step. | A process people regularly get wrong, where the knowledge currently lives in someone's head. | The steps must match a fixed specification exactly, or nobody will review what gets generated. Confirm regional availability before committing. |
+| **Power Apps code apps** | Developers build the front end in their own code, running on Power Platform with Dataverse, connectors, and Power Platform governance. Generally available. | You have professional developers and an interaction the low-code designers genuinely cannot deliver, and you want to stay inside Dataverse and the Power Platform Admin Center. | There is no developer capacity to build *and maintain* it — this option permanently raises the ownership bar. |
+| **Microsoft managed apps** | An app built on open standards — TypeScript or JavaScript, with a Git repo per app — discovered and played at managedapps.cloud.microsoft and administered from the Microsoft Admin Center. In preview. | Developers who want a Git-first workflow with development, staging, and production stages, for productivity apps sitting alongside Cowork and Work IQ. | The solution must ship on generally available technology, or it must be governed as a Dataverse solution through the Power Platform Admin Center. |
+| **Vibe-built app (Copilot Studio)** | You describe the app you want in plain language and Copilot Studio builds it for you. | A maker with no developer skills who needs a working app quickly, and early prototypes people can react to rather than imagine. | The result must meet a fixed specification exactly, or nobody will own and review what gets generated. |
+| **Custom agent (Copilot Studio)** | A conversational assistant that answers questions from your content and can take actions on request. | Question-answering over documents or policy, guided intake, triage, drafting, and summarising — where a conversation genuinely beats a form. | The work is deterministic record-keeping, every step must be repeatable and auditable, or a wrong answer carries safety, legal, or financial consequences. |
+| **Power Automate flows** | Rules that run in the background — notifications, approvals, scheduled jobs, moving data between systems. | Almost every scenario, as a supporting component. | Rarely the whole answer on its own — pair it with one of the options above. |
+
+The options are not mutually exclusive, and a good answer usually combines several. Rate each one separately, then compose them below.
+
+#### Code apps vs managed apps
+
+These two get confused most often, and the difference is not "one is newer". They sit on different foundations, with different data, source control, deployment, and administration stories.
+
+| | Power Apps code apps | Microsoft managed apps |
+|---|---|---|
+| **Availability** | Generally available | Preview |
+| **Foundation** | Extends Microsoft Power Platform | Open standards — TypeScript/JavaScript and Git; integrated with Cowork and Work IQ |
+| **Data** | Dataverse | Optional out-of-the-box database *(coming soon)* whose lifecycle and access control are tied to the app, aimed at personal and team productivity; Dataverse reachable via connector |
+| **Backend logic** | Dataverse plugins, cloud flows, or custom connectors around an API | Optional middle tier built with the app *(coming soon)* |
+| **Source control** | Dataverse solutions; Git integration is optional | Every app has a Git repo |
+| **ALM and stages** | Power Platform pipelines deploy solutions to run in other *environments* | Git is the foundation for deploying through *stages* — development, staging, production |
+| **Discovery and play** | Users must be shared a link; playback on apps.powerapps.com | Discovery and playback on managedapps.cloud.microsoft |
+| **Administration** | Power Platform Admin Center | Microsoft Admin Center |
+
+How to choose between them:
+
+- If the centre of gravity is Dataverse data, connectors, and existing Power Platform governance, code apps are the safer answer today — and they are generally available.
+- If the team already lives in Git and wants source control and staged deployment as the default rather than an add-on, managed apps match how they already work.
+- **Always say out loud that managed apps are in preview.** Never let a user attach a production go-live date to a preview product without knowing that is the bet. If they must ship on generally available technology, that alone rules it out.
+- The out-of-box database and middle tier for managed apps are *coming soon*, not available now. Do not design around them as though they exist. If the scenario needs a database today, that is Dataverse — reached via connector if the user still wants managed apps.
+
+This comparison was current in August 2026. Both products move quickly — re-check availability before quoting it to a customer.
+
+#### Weighting
+
+Score each option 0–5 against each criterion, multiply by the weight, and total to a score out of 100.
+
+| Criterion | Weight | What raises the score |
+|---|---|---|
+| Maker capability and code comfort | 25 | The option matches who will actually build and maintain it — from Section 1 |
+| User audience and access model | 20 | The option serves the real audience without bolt-on workarounds |
+| Interaction style | 15 | Form-and-record work suits apps; open-ended question-answering suits agents |
+| Data and integration complexity | 15 | The option handles the volume, relationships, and systems involved |
+| Governance, compliance, and lifecycle control | 15 | The option gives the degree of control the compliance flags demand |
+| Scale, volume, and performance | 10 | The option holds up at the stated user and data volumes |
+
+**Coding skill and AI appetite carry the most weight.** An option the team cannot build, or will not adopt, is not a fit however elegant the architecture. If the user has no developers, neither code apps nor managed apps can rate above 🟡 Fit regardless of how well they suit the problem. If the user is wary of AI, neither a Copilot Studio agent nor a vibe-built app can be the primary recommendation — offer them as a later phase instead, and say what would need to change first.
+
+#### Match bands
+
+| Band | Score | Meaning |
+|---|---|---|
+| 🟢 **Strong fit** | 80–100 | Recommend it. The scenario, the team, and the option line up. |
+| 🔵 **Good fit** | 60–79 | Workable and a credible alternative — say what choosing it would cost. |
+| 🟡 **Fit** | 40–59 | Possible, but with real caveats, extra effort, or a skills gap to close first. |
+| 🔴 **Doesn't fit** | 0–39 | Do not build it this way. Always give the specific reason. |
+
+**Hard blockers override the score.** If any of these apply, the band is 🔴 Doesn't fit no matter what the total says:
+
+| Option | Hard blocker |
+|---|---|
+| Canvas app / Model-driven app | The primary audience is external and has no work account |
+| Power Apps code apps | No professional developer is available to maintain it after go-live |
+| Microsoft managed apps | The solution must ship on generally available technology — managed apps are in preview |
+| Vibe-built app / custom agent | The user has ruled out AI involvement |
+| Custom agent | The output must be deterministic, or a wrong answer carries safety, legal, or financial consequences |
+| Any option | It cannot meet a compliance requirement confirmed in Section 5 |
+
+#### Compose the solution
+
+With the ratings done, build the actual recommendation. Work from the business capabilities the
+discovery surfaced, not from a list of products.
+
+1. **List the distinct capabilities the scenario needs.** Typically between three and six — capture,
+  back-office processing, a guided process, questions, notifications, reporting, external access.
+2. **Assign each capability to the part that serves it best**, using the ratings as evidence.
+3. **Say what each part addresses in the user's own words**, not in product terms.
+4. **Name the phase each part lands in.** A composed solution is delivered in order, not all at once.
+
+Common capability-to-component pairings:
+
+| Capability | Usually served by |
+|---|---|
+| Capture and intake, often away from a desk | Canvas app over Dataverse, with Office 365 connectors for mail and Teams |
+| Back-office processing, queues, case work, audit trail | Model-driven app over the same tables |
+| A guided walkthrough of one process people get wrong | Generative page |
+| Answering "how do I" and "what is" questions | Copilot Studio agent over Dataverse and SharePoint |
+| Notifications, approvals, scheduled jobs, syncing | Power Automate |
+| Management or leadership overview | Power BI |
+| Self-service for people outside the organisation | Power Pages |
+| A UI the low-code designers genuinely cannot express | Code apps — but check what mobile experience you lose |
+
+These are starting points, not rules. Justify each pairing from a discovery answer.
+
+**One shared data layer.** Parts should read and write the same Dataverse tables rather than each
+keeping their own copy. If a composition needs data synced between two stores, say why, because that
+is a cost the user will carry forever.
+
+#### How to present it
+
+Order the output like this — it is the sequence the reader needs:
+
+1. **What you are trying to do** — the scenario in their words, first, so the recommendation has context.
+2. **The solution** — a headline sentence naming how the parts fit together, then one row per part:
+
+  | What it addresses | What we build | Who uses it |
+  |---|---|---|
+
+  `What it addresses` is the business capability plus the problem it solves. `What we build` names
+  the components and explains the choice in one sentence. Add the phase.
+3. **Options considered** — the ratings table, as supporting evidence:
+
+  | Option | Match | Why | What it would take |
+  |---|---|---|---|
+
+  Mark which options are part of the recommended solution. For any option **not** chosen, say what
+  the user would give up by picking it instead — e.g. *"Code apps would give you a more polished
+  desktop interface, but you would lose the mobile experience the Power Apps app gives you for
+  free."* That tradeoff is often more useful than the rating itself.
+
+**Never show the numeric score to the user.** The band and the reason are the deliverable; the scoring is your working.
+
+Product capabilities, availability, and licensing change quickly. State fit and rationale confidently, but tell the user to confirm current licensing, preview status, and regional availability before committing to code apps, managed apps, generative pages, or anything built in Copilot Studio.
+
 ### Step 3 - Recommendation generation
 
 Generate a recommendation that includes all sections below.
 
-1. Executive summary (business outcomes and scope)
-2. Recommended architecture pattern and why
-3. Architecture diagram in Mermaid — apply this decision logic before generating:
+1. What the user is trying to do — the scenario in their own words, always first
+2. The recommended solution from Step 2b — the composition, capability by capability
+3. Options considered — the ratings table with tradeoffs, as supporting evidence
+4. Architecture diagram in Mermaid — apply this decision logic before generating:
 
    **Step 3a — Complexity check:**
    Assess whether a diagram materially helps explain the architecture. Use these thresholds:
@@ -357,26 +605,26 @@ Generate a recommendation that includes all sections below.
      C --> F[Power BI - Operations Dashboard]
    ```
 
-4. Component mapping:
-   - Power Apps type (Canvas, Model-driven, or both)
-   - Dataverse data model approach
+5. Component mapping:
+  - Each part of the composed solution from Step 2b, and the capability it serves
+  - Dataverse data model approach, shared across the parts
    - Power Automate usage (cloud flows, approvals, orchestration)
    - Integration connectors and API strategy
    - Reporting strategy (Power BI and self-service boundaries)
-5. Security and compliance baseline:
+6. Security and compliance baseline:
    - Identity and access model
    - Environment strategy and DLP boundaries
    - Secret management and encryption posture
    - Audit and monitoring controls
-6. ALM and operations:
+7. ALM and operations:
    - Environment topology (Dev, Test, Prod)
    - Solution lifecycle, deployment toolchain, rollback strategy
    - Ownership and RACI fit
-7. Performance and scale considerations:
+8. Performance and scale considerations:
    - Data volume, growth, throttling, and offline behavior
-8. Risks and mitigations
-9. 30/60/90 day implementation roadmap
-10. Prioritized backlog with effort, value, owner, dependencies
+9. Risks and mitigations
+10. 30/60/90 day implementation roadmap
+11. Prioritized backlog with effort, value, owner, dependencies
 
 ### Step 4 - SA quality bar validation
 
@@ -387,49 +635,57 @@ Validate before finalizing:
 - Tradeoffs are explicit when multiple options exist.
 - Risks include preventive and contingency actions.
 - Backlog includes quick wins and foundation items.
+- The solution is presented as a composition tied to business capabilities — not as a single product choice, and not as a ranked list of technologies.
+- Every part of the solution traces to a capability the user actually described, and every capability they described is served by some part or explicitly deferred.
+- The fit matrix rates every option from the Step 2b list — none silently dropped — and each rating has a reason tied to a discovery answer.
+- Options that were not chosen say what the user would give up by choosing them.
+- No rating contradicts the coding skill or AI appetite answers from Section 1, and every hard blocker has been applied.
+- Parts of the solution share one data layer, or the cost of not doing so is stated.
+- No numeric fit score appears anywhere in the user-facing output.
+- Every technical term carries a numbered marker on first use, and every marker has a matching
+  glossary entry — with no orphan markers and no unused glossary entries.
+- Each section reads as SA guidance in plain language, not as jargon the user must decode.
 
 **On validation failure:** If any check above fails, do not silently proceed.
 - If a major category (UX, Data, Security, ALM, Ownership) has no discovery answer and no safe default can be inferred, loop back to Step 1d and ask the single most important missing question before continuing.
 - If a tradeoff, risk, or ownership detail can be reasonably inferred from context, fill it in, mark it `[ASSUMED]`, and flag the assumption clearly to the user in the output.
 - If the backlog has no quick wins, add at least one from the standard foundation set: "Provision Dev environment", "Create core Dataverse tables", or "Configure DLP policy".
+- If no option reaches 🔵 Good fit or better, do not inflate one to fill the gap. Say plainly which constraint is blocking every option, and what would have to change — a skill to bring in, a licence to buy, a requirement to relax.
+- If a marked term has no glossary entry, write the entry before rendering. If a glossary entry has no marker in the body, delete the entry. Renumber so markers stay sequential from `[1]`.
+- If a passage cannot be understood without prior Power Platform knowledge, rewrite it in plain language before rendering — do not ship it and rely on the glossary to compensate.
 
 ### Step 5 - Render inline output
 
-Render the full architecture recommendation **directly in the chat** as rich Markdown. Do not write any files.
+Render a polished decision summary in chat. Target 180–280 words and do not use a table:
 
-Structure the inline response as follows:
+1. **Recommended architecture** — product names on one line, followed by one sentence explaining how the parts work together.
+2. **Solution** — a vertical list of no more than five recommended products. Each item uses **Product name** followed by one short business-purpose phrase.
+3. **Why this fits** — the three most important reasons tied to discovery answers.
+4. **Confirm before build** — no more than three material assumptions, regional checks, blockers, preview/licensing checks, or risks.
+5. **Next** — the next two actions only.
 
-**1. Architecture diagram** — emit the Mermaid diagram in a fenced ` ```mermaid ``` ` block. Copilot Chat renders this as a real diagram.
+Do not include a table, full option matrix, architecture diagram, risk register, backlog, decision log, glossary, or rejected options in chat.
 
-**2. Component summary** — Markdown table: Component | What it does | Primary user
+Use real Microsoft product icons only where the rendering surface supports packaged image assets. For generated HTML and PDF, follow `references/product-icon-spec.md` and place the official icon beside every recommended product name. Do not crop, recolor, rotate, distort, or use an icon without its product label. Copilot Studio chat does not reliably expose packaged SVGs as inline image URLs, so use bold product names without emoji or imitation glyphs there rather than showing fake icons.
 
-**3. Security baseline** — bullet list
+Use `<sup>[n]</sup>` for a technical term's first-use marker in chat. Then ask:
 
-**4. Risk register** — Markdown table: Risk | Likelihood | Preventive action | Contingency
+> **Download:** Choose **Essential PDF**, **Essential HTML**, **Full architecture pack**, or **No download**.
 
-**5. Roadmap** — three `###` sections (Phase 1 / Phase 2 / Phase 3), each containing a Markdown table of tasks. Follow with a **⚡ Quick Wins** bullet list.
-
-**6. Key decisions** — one `###` per decision with bold Decision, Options, Rationale, Tradeoffs, Status.
-
-**7. Next steps** — numbered list, top 5–8 actions with **who** and any ⚠️ blockers.
-
-After rendering, end with:
-
-> "Want a shareable HTML report you can open in a browser, email, or print as PDF? Say **save report** and I'll write it to your Desktop."
+If the user chooses **Full architecture pack**, ask once for **PDF**, **HTML**, or **Markdown**. Otherwise generate the selected essential format immediately. If they choose no download, end without generating a file.
 
 ---
 
-### Step 5b - Write HTML report (on demand only)
+### Step 5b - Generate detailed report (on demand only)
 
-Only execute this step if the user explicitly requests it (e.g. "save report", "give me the HTML", "export this", "I want to share it").
+Only execute this step after the user requests or selects an essential report or full architecture pack.
 
-Ask the user: *"Where would you like to save the HTML report? Default: `~/Desktop/<scenario-slug>-architecture-report.html`"* — On Windows, resolve `~` as `$env:USERPROFILE` (OneDrive may redirect the Desktop folder). Use the confirmed path.
+1. Read `references/report-output-spec.md` in full.
+2. Generate the selected essential report or full architecture pack in the selected format in the runtime's temporary working area.
+3. Validate that the file opens, has the selected extension, contains all required sections, and is not empty.
+4. Return the file to the user as a downloadable attachment.
 
-**Never write into the workspace, repo, or any relative path.**
-
-This file must open in any browser with no internet connection and no external dependencies. All CSS, JavaScript, and content is inline.
-
----
+For PDF, use a PDF-capable library available in the runtime. Generate a real PDF file; never rename HTML or Markdown to `.pdf`. If PDF generation is unavailable, say so and offer HTML or Markdown instead.
 
 ## HTML report format
 
@@ -440,6 +696,8 @@ When executing **Step 5b**, **read `references/html-report-spec.md` in full befo
 - Do not fabricate compliance certifications.
 - Flag unknowns clearly as assumptions.
 - Do not prescribe premium licensing decisions without noting licensing impact.
+- **Preview products:** If the recommendation includes anything in preview — Microsoft managed apps today — say so in the fit matrix, the risk register, and the roadmap. Never let a production go-live date rest on a preview product without the user knowing that is the bet they are taking. Never design around capabilities marked "coming soon" as if they already shipped.
 - If sensitive data is involved, enforce least privilege and explicit DLP segmentation.
-- **Safe-default guidance:** When a user answers "I don't know" or "TBD", provide a safe default recommendation and explain the tradeoff — do not simply log it as an assumption and move on. Example: "If you're unsure about data residency, the safe default is your existing Microsoft 365 tenant region; document it as a decision to revisit if GDPR or HIPAA requirements emerge later."
-- **No customer or project references:** Never include real customer names, organisation names, project codenames, or client-specific internal system names in any discovery question, architecture output, schema hint, decision log, or backlog item. If the user mentions a specific internal system name during discovery, use a generic descriptor instead (e.g. "your existing HR system" not the system's internal name). This applies to all outputs — both inline chat responses and any saved HTML report.
+- **Safe-default guidance:** When a user answers "I don't know" or "TBD", provide a safe default recommendation and explain the tradeoff rather than logging it and moving on. Do not guess legal jurisdiction or data residency. When either is unknown, mark it as a pre-deployment decision and keep region-dependent compliance, licensing, and availability conclusions conditional until it is confirmed.
+- **No customer or project references:** Never include real customer names, organisation names, project codenames, or client-specific internal system names in any discovery question, architecture output, schema hint, decision log, or backlog item. If the user mentions a specific internal system name during discovery, use a generic descriptor instead (e.g. "your existing HR system" not the system's internal name). This applies to the chat summary and every detailed report format.
+- **Discovery artefacts are never committed:** Reports describe a discovery session. Write them only to the path the user confirms, always outside the workspace. Never add a report to source control, and never suggest publishing one to a site or repo.

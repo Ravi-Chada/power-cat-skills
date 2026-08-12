@@ -68,6 +68,7 @@ footer { position: sticky; bottom: 0; background: white;
 .mermaid { background: white; border-radius: 6px; padding: 20px;
            box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 20px;
            overflow-x: auto; }
+.term-ref { font-size: 60%; line-height: 0; vertical-align: super; }
 ```
 
 ---

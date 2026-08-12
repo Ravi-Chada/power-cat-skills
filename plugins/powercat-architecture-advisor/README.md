@@ -20,11 +20,13 @@ What it produces:
 
 ## Discovery Input Model
 
-The plugin includes a reusable questionnaire at:
+The skill infers requirements from the user's scenario, conversation, and uploaded requirements documents. It asks three scenario-specific questions that can be answered together in one paragraph, then presents labelled assumptions that the user can accept or overwrite.
+
+The plugin also includes an internal reusable question bank at:
 
 - references/architecture-questionnaire.md
 
-The skill enforces completion of all [Required] questions before finalizing recommendations.
+The question bank guides the LLM's selection of the three highest-value questions; users do not need to complete it. Further questions are reserved for safety, legal, platform-fitness, or technically divergent blockers that cannot safely be assumptions.
 
 ## Local Test
 
@@ -37,6 +39,10 @@ Then prompt:
 - "Design a Power Platform architecture for this scenario"
 - "Run a Power CAT style architecture assessment"
 - "Recommend the best pattern using my questionnaire answers"
+
+## Copilot Studio
+
+To deploy this skill with an agent powered by the GitHub Copilot harness, use the package builder and configuration guide in [copilot-studio/](copilot-studio/README.md). The generated upload ZIP is written to the ignored `build/copilot-studio/` directory.
 
 ## Public Repo Readiness
 
