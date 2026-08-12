@@ -1,24 +1,68 @@
-# Detailed report output specification
+# Architecture Delivery Pack specification
 
-Use this specification whenever the user selects a downloadable detailed report.
+Use this specification whenever the user selects an Architecture Delivery Pack.
 
-## Required sections
+## One artifact, layered for different readers
 
-Include these sections in this order:
+Generate one cohesive artifact rather than separate requirements, architecture, implementation, roadmap, and assurance downloads. The opening sections must stand alone for decision-makers; detailed delivery and assurance content follows for specialists.
 
-1. Scenario, confirmed regional context, and confirmed assumptions
-2. Recommended solution mapped to business capabilities
-3. Options considered with Strong fit / Good fit / Fit / Doesn't fit and tradeoffs
-4. Architecture diagram or a plain-text component flow when the selected format cannot render Mermaid
-5. Component and shared data model detail
-6. Security, compliance, governance, and ALM baseline
-7. Risk register with preventive and contingency actions
-8. 30/60/90-day roadmap and quick wins
-9. Prioritized backlog
-10. Decision log
-11. Next steps
-12. Glossary
-13. Sources consulted
+Read `references/requirements-brief-spec.md` and `references/implementation-blueprint-spec.md` before generating the pack. Apply their ID, traceability, acceptance, and quality rules inside the corresponding sections.
+
+## Required structure
+
+### Part 1 — Decision brief
+
+Target 3–5 pages in PDF and the default landing tab in HTML.
+
+1. Decision at a glance — scenario, confirmed regional context, recommended architecture, and High / Medium / Low architecture confidence with material confirmations named
+2. Recommended components — no more than six products, each with its official icon, product label, business purpose, and phase
+3. Architecture flow — one readable diagram or compact component-flow representation
+4. Why this fits — the three strongest discovery-based reasons
+5. Confirm before build — no more than five material decisions, assumptions, risks, licensing checks, or regional validations
+6. Next actions — the five actions required to start safely
+
+### Part 2 — Requirements
+
+Follow `references/requirements-brief-spec.md`. Include business outcomes, scope, users and journeys, stable requirement IDs, functional/data/integration/security/non-functional requirements, constraints, assumptions, decisions needed, acceptance evidence, and traceability.
+
+### Part 3 — Architecture
+
+1. Recommended solution mapped to business capabilities
+2. Options considered with Strong fit / Good fit / Conditional fit / Doesn't fit, one discovery-based evidence statement, and one material watch-out per option; never show numeric scores
+3. Architecture diagram
+4. Component and shared conceptual data model
+5. Security, compliance, governance, and ALM baseline
+
+### Part 4 — Implementation blueprint
+
+Follow `references/implementation-blueprint-spec.md`. Trace implementation item IDs and acceptance criteria to requirement IDs. If architecture-changing decisions remain, visibly label this part **Draft — blocked decisions remain** rather than inventing detail.
+
+### Part 5 — Delivery roadmap
+
+1. 30/60/90-day outcomes and quick wins
+2. Prioritized phased backlog with dependencies and owners
+3. Definition of done and handover checklist
+
+### Part 6 — Assurance appendices
+
+1. Risk register with preventive and contingency actions
+2. Decision log
+3. Complete assumption register
+4. Requirement-to-implementation traceability matrix
+5. Compact glossary
+6. Sources actually consulted
+
+Keep detail proportionate to evidence. One artifact does not mean every section should be exhaustive. Avoid duplicated prose: use IDs and cross-references instead.
+
+## Official product icons
+
+Read `references/product-icon-spec.md` before generating HTML or PDF.
+
+- Use the bundled official Microsoft SVG beside each recommended product in component lists and architecture diagrams.
+- Keep the product name adjacent to its icon and include alternative text in HTML.
+- Do not crop, recolor, rotate, distort, redraw, or substitute emoji for a product icon.
+- Keep icons restrained: use them for recommended products, not for every heading, risk, task, or bullet.
+- In Markdown and Copilot Studio chat, use bold product labels without an icon when the asset cannot be packaged reliably with the content.
 
 ## Microsoft Learn grounding
 
@@ -45,27 +89,30 @@ Do not reduce the technical term itself to 60%; reduce only its numbered marker.
 
 ## Markdown
 
-- Create `<scenario-slug>-architecture-report.md` as UTF-8 Markdown.
+- Do not offer Markdown as a standard Delivery Pack format. Use PDF or Interactive HTML so official icons, navigation, and layered presentation remain intact.
+- If the user explicitly requires Markdown for source control, create `<scenario-slug>-architecture-delivery-pack.md` as UTF-8 Markdown.
 - Use headings, compact tables, bullets, and a fenced Mermaid block.
 - Use `<sup>[n]</sup>` markers.
-- Include the full report, not the concise chat summary.
+- Use bold product names without imitation icons.
 
 ## HTML
 
-- Create `<scenario-slug>-architecture-report.html` as a self-contained UTF-8 document.
+- Create `<scenario-slug>-architecture-delivery-pack.html` as a self-contained UTF-8 document.
 - Follow `references/html-report-spec.md` for layout and print behavior.
+- Embed bundled official product SVGs as Base64 data URIs so the report remains self-contained.
 - Include the `.term-ref` style exactly as specified above.
 - Ensure Print / Save as PDF presents every report section, not only the active tab.
 
 ## PDF
 
-- Create `<scenario-slug>-architecture-report.pdf` as a valid PDF document.
+- Create `<scenario-slug>-architecture-delivery-pack.pdf` as a valid PDF document.
 - Use a PDF library available in the Copilot Studio sandbox and inspect the resulting file before returning it.
 - Use a readable page size, margins, repeated table headings, page numbers, and sensible page breaks.
 - Render the architecture as a simple component-flow diagram when possible; otherwise include a readable component-flow table.
+- Render bundled official product icons beside recommended product labels, preserving their aspect ratio and colors.
 - Use 60% superscript markers and include the complete glossary.
 - Never produce a screenshot-only PDF. Text must remain selectable when the library supports it.
 
 ## Delivery
 
-Return exactly the selected format as a downloadable attachment. Do not create all formats unless the user asks for more than one. Generated files are temporary; advise the user to download the attachment if they need to retain it.
+Return exactly one selected Delivery Pack format as a downloadable attachment. Do not create both formats unless the user asks. The mid-discovery `.eml` and discovery-handoff HTML are separate because they support consultation before the final pack exists. Generated files are temporary; advise the user to download the attachment if they need to retain it.

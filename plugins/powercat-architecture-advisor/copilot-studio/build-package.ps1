@@ -57,7 +57,9 @@ These rules override any conflicting instruction later in this skill:
 - At any point, when the user needs colleague input or asks to email discovery, collect To and optional Cc addresses and generate a reviewable `.eml` draft plus a self-contained `.html` discovery handoff. Never claim to send mail or retain addresses.
 - Let the user go back, revise an earlier answer, inspect assumptions, or finish using safe defaults.
 - Use ordinary conversational questions. Do not assume coding-agent file, search, or prompt tools are available.
-- Return a table-free 180–280 word decision summary in chat. Offer Essential PDF, Essential HTML, Full architecture pack, or No download. Generate exactly the selected report in the Copilot Studio sandbox and return it as a downloadable attachment.
+- Return a table-free 180–280 word decision summary in chat. Offer one Architecture Delivery Pack as PDF or Interactive HTML, or No download. The pack contains the decision summary, requirements, architecture, implementation blueprint, roadmap, and appendices in one artifact.
+- Keep weighted fit calculations private. Present each option only as Strong fit, Good fit, Conditional fit, or Doesn't fit, with one discovery-based **Evidence** statement and one material **Watch-out**.
+- Present overall architecture confidence as High, Medium, or Low based on confirmed input completeness. Name material assumptions when confidence is not High; never present confidence as an LLM probability.
 - Use configured Microsoft Learn knowledge sources to ground material product capability, availability, licensing, connector, and regional claims. Include only sources actually consulted.
 - Treat sandbox files as temporary. Never claim that a report was saved to the user's local Desktop, workspace, repository, SharePoint, or another durable location.
 - When a new domain pattern is derived, include it in a final **Pattern feedback** section for a maintainer to review. Never claim that the package or learning log was updated.
@@ -117,8 +119,12 @@ $skillPath = Join-Path $stagingRoot 'SKILL.md'
 
 $referenceNames = @(
     'architecture-questionnaire.md',
+    'discovery-handoff-spec.md',
     'html-report-spec.md',
+    'implementation-blueprint-spec.md',
     'learned-patterns.md',
+    'product-icon-spec.md',
+    'requirements-brief-spec.md',
     'report-json-shape.md',
     'report-output-spec.md'
 )
@@ -131,6 +137,13 @@ foreach ($referenceName in $referenceNames) {
 
     Copy-Item $source (Join-Path $stagingRoot "references\$referenceName")
 }
+
+$productIconSource = Join-Path $sourceReferences 'product-icons'
+$productIconTarget = Join-Path $stagingRoot 'references\product-icons'
+if (-not (Test-Path $productIconSource)) {
+    throw "Required product icon directory not found: $productIconSource"
+}
+Copy-Item $productIconSource $productIconTarget -Recurse
 
 if (Test-Path $zipPath) {
     Remove-Item $zipPath -Force

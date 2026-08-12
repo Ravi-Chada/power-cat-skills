@@ -6,10 +6,10 @@ description: >
   (for example a Canvas app over Dataverse for intake, a Model-driven app for back-office staff, a
   generative page for a guided process, and a Copilot Studio agent over Dataverse and SharePoint for
   questions). It then shows every option considered — Canvas, Model-driven, Power Pages, Power Apps
-  code apps, Microsoft managed apps, vibe-built apps, agents — rated Strong fit, Good fit, Fit, or
-  Doesn't fit, with what you would give up by choosing each, weighted by the team's coding skill and
-  appetite for AI. Follows a Power CAT Solution Architect process: discovery, architecture blueprint,
-  security and governance, roadmap, and risk register, in plain language with a glossary. Triggers:
+  code apps, Microsoft managed apps, vibe-built apps, agents — rated Strong fit, Good fit, Conditional
+  fit, or Doesn't fit, with evidence and watch-outs. It uses adaptive three-question sections and
+  produces one Architecture Delivery Pack containing requirements, architecture, implementation,
+  roadmap, and assurance content. Triggers:
   "design architecture for my Power Platform scenario", "what should I build for this scenario",
   "recommend Power Platform pattern", "code apps vs managed apps", "should this be a Copilot Studio
   agent", "Power CAT style architecture review", "solution blueprint for this use case".
@@ -82,9 +82,22 @@ Apply recommendations globally; do not default to the UK, US, EU, or the agent a
 
 **Default — concise decision summary in chat.** After completing Step 4, return the summary defined in Step 5. Do not put the full architecture report in chat unless the user explicitly asks to see it inline.
 
-**On demand — detailed downloadable report.** After the summary, offer **Markdown (.md)**, **PDF (.pdf)**, **HTML (.html)**, or **No download**. If the user already requested a format, honor it without asking again. Follow `references/report-output-spec.md` for every format.
+**On demand — Architecture Delivery Pack.** After the summary, offer **PDF**, **Interactive HTML**, or **No download**. The selected pack combines the decision brief, requirements, architecture, implementation blueprint, roadmap, and assurance appendices in one artifact. If the user already requested a format, honor it without asking again. Follow `references/report-output-spec.md`.
 
 Create report files only in the runtime's temporary working area and return them as downloadable attachments. Never write a generated report into the workspace or repository.
+
+## Runtime portability
+
+The discovery, fit assessment, assumptions, confidence model, and chat summary are host-independent Markdown behavior. Adapt artifact delivery to the capabilities actually exposed by the current agent:
+
+1. **Attachment-capable sandbox (Copilot Studio):** create temporary files and return downloadable attachments.
+2. **File-capable coding agent (Scout, Claude-compatible plugin host, or similar):** ask the user to confirm an output directory outside the repository, write the selected artifact there, and return the exact path. Do not assume a Desktop path or write discovery artifacts into source control.
+3. **Chat-only agent:** provide the concise decision summary inline. If the user requests the Delivery Pack, offer a structured Markdown version in chat and explain that this host cannot create a downloadable PDF, interactive HTML, EML, or attachment.
+4. **No attachment ingestion:** invite the user to paste relevant requirements text. Never claim to have read an unavailable upload.
+5. **No PDF or SVG renderer:** offer self-contained HTML when file creation exists; otherwise use Markdown with bold product labels. Never rename another format to `.pdf` or replace official product icons with imitations.
+6. **No EML generation:** provide the discovery handoff as HTML or Markdown plus a plain-text email body, following `references/discovery-handoff-spec.md`.
+
+Do not mention unavailable controls, buttons, uploads, or formats as though the host supports them. Core architecture recommendations must not change merely because presentation capabilities differ.
 
 ## Workflow
 
@@ -244,6 +257,8 @@ If the channel exposes supported suggested actions, **Continue** may be a sugges
 #### 1d.1 - Pause and email discovery
 
 At any point, if the user says they do not know, need to consult colleagues, want to pause, or asks to email the questions, offer to create a reviewable email draft and resubmittable discovery document.
+
+Read `references/discovery-handoff-spec.md` in full before generating either file.
 
 1. Ask for **To** addresses and optional **Cc** addresses in one message unless the user already supplied them. Explain that addresses are used only to create the files in the current session and are not retained by the skill.
 2. Validate addresses conservatively and reject line breaks or other email-header injection characters. Accept comma- or semicolon-separated addresses. Never infer an address.
@@ -462,14 +477,15 @@ Score each option 0–5 against each criterion, multiply by the weight, and tota
 
 | Criterion | Weight | What raises the score |
 |---|---|---|
-| Maker capability and code comfort | 25 | The option matches who will actually build and maintain it — from Section 1 |
 | User audience and access model | 20 | The option serves the real audience without bolt-on workarounds |
-| Interaction style | 15 | Form-and-record work suits apps; open-ended question-answering suits agents |
-| Data and integration complexity | 15 | The option handles the volume, relationships, and systems involved |
-| Governance, compliance, and lifecycle control | 15 | The option gives the degree of control the compliance flags demand |
+| Business process and interaction fit | 15 | The option naturally supports the work: records and forms, guided steps, external self-service, automation, analytics, or conversation |
+| Data and integration fit | 15 | The option handles the relationships, systems, migration, and connectivity involved |
+| Team skills and maintainability | 15 | The option matches who will build, support, and change it after go-live |
+| Security and compliance fit | 15 | The option supports the confirmed access, sensitivity, regional, audit, and governance needs |
 | Scale, volume, and performance | 10 | The option holds up at the stated user and data volumes |
+| Licensing and product maturity | 10 | Licensing is viable and the required capabilities have an acceptable availability or preview status |
 
-**Coding skill and AI appetite carry the most weight.** An option the team cannot build, or will not adopt, is not a fit however elegant the architecture. If the user has no developers, neither code apps nor managed apps can rate above 🟡 Fit regardless of how well they suit the problem. If the user is wary of AI, neither a Copilot Studio agent nor a vibe-built app can be the primary recommendation — offer them as a later phase instead, and say what would need to change first.
+**Hard constraints matter more than weighted totals.** An option the team cannot build, the audience cannot access, or compliance cannot permit is not a fit however elegant the architecture. If the user has no developers, neither code apps nor managed apps can rate above 🟡 Fit regardless of the calculated total. If the user is wary of AI, neither a Copilot Studio agent nor a vibe-built app can be the primary recommendation — offer them as a later phase instead, and say what would need to change first.
 
 #### Match bands
 
@@ -477,8 +493,24 @@ Score each option 0–5 against each criterion, multiply by the weight, and tota
 |---|---|---|
 | 🟢 **Strong fit** | 80–100 | Recommend it. The scenario, the team, and the option line up. |
 | 🔵 **Good fit** | 60–79 | Workable and a credible alternative — say what choosing it would cost. |
-| 🟡 **Fit** | 40–59 | Possible, but with real caveats, extra effort, or a skills gap to close first. |
+| 🟡 **Conditional fit** | 40–59 | Possible only if named conditions, caveats, extra effort, or a skills gap are accepted. |
 | 🔴 **Doesn't fit** | 0–39 | Do not build it this way. Always give the specific reason. |
+
+The numeric score is private working. Never show it to the user. For every user-facing option rating, show:
+
+- **Fit** — Strong fit, Good fit, Conditional fit, or Doesn't fit.
+- **Evidence** — one concise fact from discovery that supports the rating.
+- **Watch-out** — the most important tradeoff, condition, maturity concern, or confirmation. Omit only when genuinely none exists.
+
+Do not describe an LLM feeling or probability as confidence. After composing the full stack, assign one evidence-completeness level:
+
+| Architecture confidence | Use when... |
+|---|---|
+| **High confidence** | All architecture-changing decisions are confirmed and no material region, security, scale, integration, ownership, licensing, or product-maturity assumption remains. |
+| **Medium confidence** | The recommendation is stable, but one or more material assumptions or confirmations remain. Name them. |
+| **Low confidence** | A missing answer could change the primary product, data layer, access model, compliance posture, or platform fitness. Name the gap and the decision it affects. |
+
+Confidence measures the completeness and quality of confirmed inputs, not the quality of the user, the model, or the organization. Hard blockers still override fit and confidence.
 
 **Hard blockers override the score.** If any of these apply, the band is 🔴 Doesn't fit no matter what the total says:
 
@@ -543,7 +575,7 @@ Order the output like this — it is the sequence the reader needs:
   desktop interface, but you would lose the mobile experience the Power Apps app gives you for
   free."* That tradeoff is often more useful than the rating itself.
 
-**Never show the numeric score to the user.** The band and the reason are the deliverable; the scoring is your working.
+**Never show the numeric score to the user.** Fit, evidence, watch-out, and architecture confidence are the deliverable; scoring is private working.
 
 Product capabilities, availability, and licensing change quickly. State fit and rationale confidently, but tell the user to confirm current licensing, preview status, and regional availability before committing to code apps, managed apps, generative pages, or anything built in Copilot Studio.
 
@@ -659,10 +691,11 @@ Validate before finalizing:
 Render a polished decision summary in chat. Target 180–280 words and do not use a table:
 
 1. **Recommended architecture** — product names on one line, followed by one sentence explaining how the parts work together.
-2. **Solution** — a vertical list of no more than five recommended products. Each item uses **Product name** followed by one short business-purpose phrase.
-3. **Why this fits** — the three most important reasons tied to discovery answers.
-4. **Confirm before build** — no more than three material assumptions, regional checks, blockers, preview/licensing checks, or risks.
-5. **Next** — the next two actions only.
+2. **Architecture confidence** — High, Medium, or Low, followed by one sentence naming the remaining confirmation when not High.
+3. **Solution** — a vertical list of no more than five recommended products. Each item uses **Product name** followed by one short business-purpose phrase.
+4. **Why this fits** — the three most important reasons tied to discovery answers.
+5. **Confirm before build** — no more than three material assumptions, regional checks, blockers, preview/licensing checks, or risks.
+6. **Next** — the next two actions only.
 
 Do not include a table, full option matrix, architecture diagram, risk register, backlog, decision log, glossary, or rejected options in chat.
 
@@ -670,18 +703,18 @@ Use real Microsoft product icons only where the rendering surface supports packa
 
 Use `<sup>[n]</sup>` for a technical term's first-use marker in chat. Then ask:
 
-> **Download:** Choose **Essential PDF**, **Essential HTML**, **Full architecture pack**, or **No download**.
+> **Create your Architecture Delivery Pack:** Choose **PDF**, **Interactive HTML**, or **No download**.
 
-If the user chooses **Full architecture pack**, ask once for **PDF**, **HTML**, or **Markdown**. Otherwise generate the selected essential format immediately. If they choose no download, end without generating a file.
+The delivery pack contains the decision summary, requirements brief, architecture, implementation blueprint, roadmap, and supporting appendices in one artifact. Generate the selected format immediately. If they choose no download, end without generating a file.
 
 ---
 
 ### Step 5b - Generate detailed report (on demand only)
 
-Only execute this step after the user requests or selects an essential report or full architecture pack.
+Only execute this step after the user requests or selects an Architecture Delivery Pack.
 
-1. Read `references/report-output-spec.md` in full.
-2. Generate the selected essential report or full architecture pack in the selected format in the runtime's temporary working area.
+1. Read `references/report-output-spec.md`, `references/requirements-brief-spec.md`, `references/implementation-blueprint-spec.md`, and `references/product-icon-spec.md` in full.
+2. Generate one Architecture Delivery Pack in the selected format in the runtime's temporary working area.
 3. Validate that the file opens, has the selected extension, contains all required sections, and is not empty.
 4. Return the file to the user as a downloadable attachment.
 

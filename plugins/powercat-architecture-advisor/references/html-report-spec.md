@@ -7,12 +7,12 @@ Read this file in full before writing the HTML output. Do not rely on the inline
 
 ## Overall structure
 
-The report has:
+The Architecture Delivery Pack has:
 
 - A **header bar** (Fluent blue `#0078d4`) showing the scenario name and generation date
-- **5 tabs**: Overview · Roadmap · Backlog · Decisions · Next Steps
+- **6 tabs:** Decision · Requirements · Architecture · Implementation · Roadmap · Appendices
 - A **sticky footer** with an "Email this report" button and a "Print / Save as PDF" button
-- A **Mermaid diagram** rendered inline on the Overview tab (use the CDN script tag: `<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>` — the only permitted external resource)
+- A **Mermaid diagram** rendered inline on the Architecture tab (use the CDN script tag: `<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>` — the only permitted external resource)
 
 ---
 
@@ -69,23 +69,48 @@ footer { position: sticky; bottom: 0; background: white;
            box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 20px;
            overflow-x: auto; }
 .term-ref { font-size: 60%; line-height: 0; vertical-align: super; }
+.product-list { display: grid; gap: 10px; }
+.product-item { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px;
+                align-items: center; padding: 10px 0; border-top: 1px solid #edebe9; }
+.product-item:first-child { border-top: 0; }
+.product-icon { width: 32px; height: 32px; object-fit: contain; }
+.product-name { font-weight: 600; }
+.product-purpose { color: #605e5c; margin-top: 2px; }
 ```
+
+Read `references/product-icon-spec.md`. Embed each bundled official SVG unchanged as a Base64 data URI in an `<img class="product-icon">`. Always provide the product name beside it and useful `alt` text. Never use emoji, recolored SVG, remote hotlinks, or icon-only labels.
 
 ---
 
-## Tab 1 — Overview
+## Tab 1 — Decision
 
 Contains in order:
 
 1. **Scenario summary card** — 3–5 sentences: the problem, users, key decisions made
 2. **Architecture diagram card** — render the Mermaid diagram here using `<pre class="mermaid">…</pre>`
-3. **Component summary card** — one row per component (Canvas App, Dataverse tables, Power Automate flows, Power BI, connectors) with a plain-language "what it does" column
+3. **Component summary card** — an icon-led vertical `.product-list`, one item per recommended Microsoft product, with the official icon, product name, plain-language purpose, and phase
 4. **Security baseline card** — bullet list of access controls, DLP, data sensitivity notes
-5. **Risk register card** — table with columns: Risk | Likelihood | Preventive action | Contingency
+5. **Confirm before build card** — no more than five material assumptions, decisions, risks, licensing checks, or regional validations
+
+## Tab 2 — Requirements
+
+Follow `references/requirements-brief-spec.md`. Use anchored requirement IDs and compact, filterable requirement tables. Keep scope, users, journeys, assumptions, and decisions outside the requirement table so they remain readable.
 
 ---
 
-## Tab 2 — Roadmap
+## Tab 3 — Architecture
+
+Contains the architecture diagram, recommended component specifications, conceptual shared data model, security and compliance baseline, option fit evidence/watch-outs, and architecture decisions. Use the official product icons in component lists and diagrams.
+
+---
+
+## Tab 4 — Implementation
+
+Follow `references/implementation-blueprint-spec.md`. Group implementation items by product or delivery concern and show requirement traceability. Put **Draft — blocked decisions remain** at the top when architecture-changing decisions remain unresolved.
+
+---
+
+## Tab 5 — Roadmap
 
 Three phase cards (use `.phase`, `.phase.p2`, `.phase.p3` classes):
 
@@ -93,58 +118,27 @@ Three phase cards (use `.phase`, `.phase.p2`, `.phase.p3` classes):
 - **Phase 2 (Days 31–60) — Build + Automate**: table of tasks
 - **Phase 3 (Days 61–90) — Harden + Scale**: table of tasks
 
-Below the phases, a **Quick Wins** card: bullet list of the 3 items that deliver the most immediate value.
+Below the phases, add a **Quick Wins** card with the three items that deliver the most immediate value, followed by the prioritized backlog and handover checklist.
 
 ---
 
-## Tab 3 — Backlog
+## Tab 6 — Appendices
 
-A filterable table. Include a small `<input>` search box above the table that filters rows by text. Columns:
-`ID | Title | Type | Priority (badge) | Phase | Effort (days) | Notes`
+Contains the risk register, decision log, complete assumption register, requirement-to-implementation traceability matrix, compact glossary, and sources actually consulted.
 
-Seed with at least 3 starter rows covering environment setup, core tables, and solution structure. Add all backlog items derived from discovery.
+Use a filterable traceability table. Include a small `<input>` search box above the table that filters rows by text. Columns:
+`Requirement | Implementation items | Acceptance evidence | Status`
 
 Filter JavaScript (inline):
 
 ```js
-document.getElementById('bl-search').addEventListener('input', function() {
+document.getElementById('trace-search').addEventListener('input', function() {
   const q = this.value.toLowerCase();
-  document.querySelectorAll('#bl-table tbody tr').forEach(r => {
+  document.querySelectorAll('#trace-table tbody tr').forEach(r => {
     r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 });
 ```
-
----
-
-## Tab 4 — Decisions
-
-One card per decision. Each card shows:
-
-- Decision ID + title (card heading)
-- Decision made (bold)
-- Options considered (bullet list)
-- Rationale
-- Tradeoffs
-- Status badge (Confirmed / Open / To Review)
-
-Seed with at least DEC-001 (data source) and DEC-002 (app type), plus all decisions surfaced during discovery.
-
----
-
-## Tab 5 — Next Steps
-
-A numbered checklist of the top 5–8 actions the user should take immediately after reading this report. Each item:
-
-- Action verb + plain-language description
-- Who should do it
-- Any blocker or dependency called out in a `⚠️` note
-
-Example items:
-
-1. Share this report with your IT Admin — ask them to provision a Dev environment and review the DLP policy recommendation
-2. Confirm your Power BI Pro licence status before starting Phase 3
-3. Archive (do not delete) existing spreadsheets before the first data migration
 
 ---
 
@@ -188,5 +182,4 @@ document.querySelectorAll('.tab').forEach(t => {
 
 ## After writing the HTML file
 
-Once the file is written, tell the user the exact path where it was saved, e.g.:
-> "Your architecture report is saved to `C:\Users\you\Desktop\charity-volunteer-giftaid-architecture-report.html`. Open it in any browser — use the tabs to navigate, and the **📧 Email this report** button to share it with your team."
+Return the HTML as a downloadable temporary attachment. Do not claim it was written to the user's Desktop, repository, SharePoint, or other durable storage. Tell the user to download it if they need to retain it.
