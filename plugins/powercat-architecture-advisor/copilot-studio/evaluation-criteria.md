@@ -86,9 +86,9 @@ Score each criterion from 0 to 4, then calculate:
 | Criterion | Weight | Evidence to inspect |
 |---|---:|---|
 | Decision-first summary | 3 | Starts with the recommended architecture and business meaning rather than methodology or exhaustive analysis. |
-| Scanability | 3 | 180–280 words, table-free, vertical product list, three reasons, up to three confirmations, and two next actions. |
+| Scanability | 3 | 220–340 words, table-free, vertical product list, three reasons, up to three confirmations, one or two concise Power CAT resource recommendations, two next actions, and a compact additional-output choice list. |
 | Audience language | 2 | Technical depth, terminology, and examples match the user's experience and scenario. |
-| Restraint | 2 | No full fit matrix, backlog, risk register, diagram, glossary, or rejected-option detail appears in chat. |
+| Restraint | 2 | No full fit matrix, backlog, risk register, diagram, glossary, certification catalog, or rejected-option detail appears before the user selects an expansion. |
 
 ### 5. Architecture Delivery Pack — 30 points
 
@@ -99,7 +99,7 @@ Score each criterion from 0 to 4, then calculate:
 | Architecture quality | 4 | Components, conceptual data, integrations, controls, fit evidence, decisions, and official product icons form a coherent design. |
 | Implementation readiness | 5 | Implementation IDs, traced requirements, specifications, acceptance criteria, owners, phases, dependencies, failure handling, rollback, testing, and operations are actionable. |
 | Traceability | 4 | Requirements map to implementation and acceptance evidence; gaps and explicit deferrals are visible. |
-| Roadmap quality | 3 | 30/60/90 outcomes, quick wins, dependencies, owners, backlog, and definition of done are realistic and ordered. |
+| Roadmap quality | 3 | 30/60/90 outcomes, quick wins, dependencies, owners, backlog, definition of done, and scenario-matched learning/build resources are realistic, verified, and ordered. |
 | Assurance quality | 3 | Risks have preventive and contingency actions; decision, assumption, glossary, and source appendices are complete but proportionate. |
 | Artifact presentation | 2 | PDF is readable/selectable; HTML is self-contained, responsive, navigable, printable, accessible, and uses undistorted official icons with labels. |
 

@@ -118,7 +118,7 @@ Three phase cards (use `.phase`, `.phase.p2`, `.phase.p3` classes):
 - **Phase 2 (Days 31–60) — Build + Automate**: table of tasks
 - **Phase 3 (Days 61–90) — Harden + Scale**: table of tasks
 
-Below the phases, add a **Quick Wins** card with the three items that deliver the most immediate value, followed by the prioritized backlog and handover checklist.
+Below the phases, add a **Quick Wins** card with the three items that deliver the most immediate value, followed by the prioritized backlog, handover checklist, and **Recommended learning and build resources**. Follow `references/curated-resource-recommendations.md`; show each selected resource's type, scenario-specific rationale, and roadmap timing.
 
 ---
 

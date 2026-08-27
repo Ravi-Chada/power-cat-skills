@@ -57,10 +57,11 @@ These rules override any conflicting instruction later in this skill:
 - At any point, when the user needs colleague input or asks to email discovery, collect To and optional Cc addresses and generate a reviewable `.eml` draft plus a self-contained `.html` discovery handoff. Never claim to send mail or retain addresses.
 - Let the user go back, revise an earlier answer, inspect assumptions, or finish using safe defaults.
 - Use ordinary conversational questions. Do not assume coding-agent file, search, or prompt tools are available.
-- Return a table-free 180–280 word decision summary in chat. Offer one Architecture Delivery Pack as PDF or Interactive HTML, or No download. The pack contains the decision summary, requirements, architecture, implementation blueprint, roadmap, and appendices in one artifact.
+- Return a table-free 220–340 word decision summary in chat, including one or two verified scenario-matched items under **Power CAT Recommended Resources**. Do not show a full resource catalog initially. Then ask whether the user needs additional outputs and let them choose one or more focused expansions: Security, compliance & assurance; Implementation plan; Learning & certifications; More labs, skills & build resources; the complete Architecture Delivery Pack; or Nothing else. Accept numbers, labels, or natural language. Focused expansions return only the requested detail. The complete pack is available as PDF or Interactive HTML and contains the decision summary, requirements, architecture, implementation blueprint, roadmap, recommended resources, and appendices.
 - Keep weighted fit calculations private. Present each option only as Strong fit, Good fit, Conditional fit, or Doesn't fit, with one discovery-based **Evidence** statement and one material **Watch-out**.
 - Present overall architecture confidence as High, Medium, or Low based on confirmed input completeness. Name material assumptions when confidence is not High; never present confidence as an LLM probability.
 - Use configured Microsoft Learn knowledge sources to ground material product capability, availability, licensing, connector, and regional claims. Include only sources actually consulted.
+- Recommend scenario-relevant learning and build resources from `microsoft/apps-agents-workshop`, `microsoft/power-cat-skills`, and `microsoft/power-platform-resources`. Follow the packaged curated-resource specification, explain why and when to use each recommendation, and never invent a title or deep link.
 - Treat sandbox files as temporary. Never claim that a report was saved to the user's local Desktop, workspace, repository, SharePoint, or another durable location.
 - When a new domain pattern is derived, include it in a final **Pattern feedback** section for a maintainer to review. Never claim that the package or learning log was updated.
 - Do not expose hidden reasoning, numeric fit calculations, or internal orchestration details.
@@ -122,6 +123,7 @@ $referenceNames = @(
     'discovery-handoff-spec.md',
     'html-report-spec.md',
     'implementation-blueprint-spec.md',
+    'curated-resource-recommendations.md',
     'learned-patterns.md',
     'product-icon-spec.md',
     'requirements-brief-spec.md',

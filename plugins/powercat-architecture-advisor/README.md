@@ -26,6 +26,7 @@ The advisor emulates a real architecture review in five stages:
 - ALM and operational model (Dev/Test/Prod topology, deployment toolchain, rollback)
 - 30/60/90-day implementation roadmap with quick wins
 - Prioritized implementation backlog (effort, value, owner, dependencies)
+- Scenario-matched labs, Power CAT build and review skills, and curated Power Platform resources
 - Decision log and risk register
 - **Architecture Delivery Pack** as a PDF or self-contained interactive HTML report
 
@@ -48,7 +49,7 @@ The skill infers requirements from the scenario, conversation, and uploaded requ
 
 **Output model:**
 
-- **Chat** — a concise, table-free decision summary with the recommended stack, architecture confidence, fit evidence, confirmations, and next actions.
+- **Chat** — a concise, table-free architecture recommendation with one or two **Power CAT Recommended Resources**, followed by optional focused outputs for compliance and assurance, implementation, learning and certifications, more labs and build resources, or the complete Delivery Pack.
 - **Architecture Delivery Pack** — one PDF or interactive HTML artifact containing the decision brief, requirements, architecture, implementation blueprint, roadmap, traceability, and assurance appendices.
 - **Discovery handoff** — when users need colleague input, a draft EML and resubmittable HTML document containing questions, answers, and assumptions. The advisor does not send email directly.
 
@@ -77,6 +78,7 @@ The plugin includes an internal question bank and supporting output specificatio
 - `references/report-output-spec.md` — authoritative Architecture Delivery Pack structure
 - `references/requirements-brief-spec.md` — requirements and acceptance traceability contract
 - `references/implementation-blueprint-spec.md` — build-ready implementation contract
+- `references/curated-resource-recommendations.md` — relevance and verification rules for recommended labs, skills, and Power Platform resources
 - `references/discovery-handoff-spec.md` — safe EML and resubmittable HTML handoff contract
 - `references/product-icon-spec.md` — official Microsoft product icon usage
 

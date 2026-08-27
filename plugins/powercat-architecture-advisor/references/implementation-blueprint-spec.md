@@ -51,7 +51,10 @@ Use `<scenario-slug>-implementation-blueprint.pdf` or `<scenario-slug>-implement
 12. **Phased implementation backlog**
 13. **Risks, decisions, and dependencies**
 14. **Definition of done and handover checklist**
-15. **Sources consulted**
+15. **Recommended learning and build resources**
+   - Follow `references/curated-resource-recommendations.md`
+   - Tie every suggested lab, skill, or resource to an implementation item, delivery phase, or risk
+16. **Sources consulted**
 
 ## Implementation item IDs
 

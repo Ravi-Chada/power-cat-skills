@@ -1,18 +1,14 @@
 ---
 name: powercat-pp-architecture-advisor
 description: >
-  Use this skill to design a Power Platform solution for a business scenario. Its primary outcome is a
-  composed recommendation — which business capability each part serves, and how the parts fit together
-  (for example a Canvas app over Dataverse for intake, a Model-driven app for back-office staff, a
-  generative page for a guided process, and a Copilot Studio agent over Dataverse and SharePoint for
-  questions). It then shows every option considered — Canvas, Model-driven, Power Pages, Power Apps
-  code apps, Microsoft managed apps, vibe-built apps, agents — rated Strong fit, Good fit, Conditional
-  fit, or Doesn't fit, with evidence and watch-outs. It uses adaptive three-question sections and
-  produces one Architecture Delivery Pack containing requirements, architecture, implementation,
-  roadmap, and assurance content. Triggers:
-  "design architecture for my Power Platform scenario", "what should I build for this scenario",
-  "recommend Power Platform pattern", "code apps vs managed apps", "should this be a Copilot Studio
-  agent", "Power CAT style architecture review", "solution blueprint for this use case".
+  Design a Power Platform solution through adaptive discovery and a Power CAT-style architecture
+  review. Recommend a composed solution across Canvas, model-driven apps, Power Pages, code apps,
+  managed apps, Copilot Studio, Dataverse, Power Automate, and Power BI. Explain fit, tradeoffs,
+  security, compliance, ALM, implementation, learning, certifications, and curated build resources.
+  Offer focused follow-up detail or a complete Architecture Delivery Pack. Use for: "design
+  architecture for my Power Platform scenario", "what should I build", "recommend a Power Platform
+  pattern", "code apps vs managed apps", "should this be a Copilot Studio agent", "Power CAT style
+  architecture review", or "solution blueprint".
 user-invocable: true
 argument-hint: "Scenario summary and any constraints or prior architecture notes."
 allowed-tools: Read, Write, Edit, Glob, Grep, AskUserQuestion
@@ -82,7 +78,7 @@ Apply recommendations globally; do not default to the UK, US, EU, or the agent a
 
 **Default — concise decision summary in chat.** After completing Step 4, return the summary defined in Step 5. Do not put the full architecture report in chat unless the user explicitly asks to see it inline.
 
-**On demand — Architecture Delivery Pack.** After the summary, offer **PDF**, **Interactive HTML**, or **No download**. The selected pack combines the decision brief, requirements, architecture, implementation blueprint, roadmap, and assurance appendices in one artifact. If the user already requested a format, honor it without asking again. Follow `references/report-output-spec.md`.
+**On demand — focused detail or Architecture Delivery Pack.** After the summary, offer the progressive-disclosure choices defined in Step 5. Users may request one or more focused sections or a complete **PDF** or **Interactive HTML** pack. If the user already requested a detail area or report format, honor it without showing the menu first. Follow `references/report-output-spec.md` for the complete pack.
 
 Create report files only in the runtime's temporary working area and return them as downloadable attachments. Never write a generated report into the workspace or repository.
 
@@ -658,6 +654,7 @@ Generate a recommendation that includes all sections below.
 9. Risks and mitigations
 10. 30/60/90 day implementation roadmap
 11. Prioritized backlog with effort, value, owner, dependencies
+12. Recommended learning and build resources — read `references/curated-resource-recommendations.md` and select only scenario-relevant labs, skills, and guidance from its three curated repositories
 
 ### Step 4 - SA quality bar validation
 
@@ -668,6 +665,7 @@ Validate before finalizing:
 - Tradeoffs are explicit when multiple options exist.
 - Risks include preventive and contingency actions.
 - Backlog includes quick wins and foundation items.
+- Curated resource suggestions are relevant to a discovered capability, implementation item, or risk; include rationale and timing; and use only verified titles and URLs.
 - The solution is presented as a composition tied to business capabilities — not as a single product choice, and not as a ranked list of technologies.
 - Every part of the solution traces to a capability the user actually described, and every capability they described is served by some part or explicitly deferred.
 - The fit matrix rates every option from the Step 2b list — none silently dropped — and each rating has a reason tied to a discovery answer.
@@ -689,24 +687,43 @@ Validate before finalizing:
 
 ### Step 5 - Render inline output
 
-Render a polished decision summary in chat. Target 180–280 words and do not use a table:
+Render a polished decision summary in chat. Target 220–340 words including the resource recommendations and do not use a table:
 
 1. **Recommended architecture** — product names on one line, followed by one sentence explaining how the parts work together.
 2. **Architecture confidence** — High, Medium, or Low, followed by one sentence naming the remaining confirmation when not High.
 3. **Solution** — a vertical list of no more than five recommended products. Each item uses **Product name** followed by one short business-purpose phrase.
 4. **Why this fits** — the three most important reasons tied to discovery answers.
 5. **Confirm before build** — no more than three material assumptions, regional checks, blockers, preview/licensing checks, or risks.
-6. **Next** — the next two actions only.
+6. **Power CAT Recommended Resources** — one or two scenario-matched resources selected using `references/curated-resource-recommendations.md`. For each, provide the verified linked title and one short phrase explaining why it is useful now. Do not list all three repositories by default or include detailed timing in this initial response.
+7. **Next** — the next two actions only.
 
 Do not include a table, full option matrix, architecture diagram, risk register, backlog, decision log, glossary, or rejected options in chat.
 
 Use real Microsoft product icons only where the rendering surface supports packaged image assets. For generated HTML and PDF, follow `references/product-icon-spec.md` and place the official icon beside every recommended product name. Do not crop, recolor, rotate, distort, or use an icon without its product label. Copilot Studio chat does not reliably expose packaged SVGs as inline image URLs, so use bold product names without emoji or imitation glyphs there rather than showing fake icons.
 
-Use `<sup>[n]</sup>` for a technical term's first-use marker in chat. Then ask:
+Use `<sup>[n]</sup>` for a technical term's first-use marker in chat. Then offer progressive disclosure:
 
-> **Create your Architecture Delivery Pack:** Choose **PDF**, **Interactive HTML**, or **No download**.
+> **Do you need any additional outputs? Choose one or more:**
+>
+> 1. **Security, compliance & assurance** — regional obligations, controls, standards, and certifications to validate
+> 2. **Implementation plan** — architecture diagram, data, integrations, ALM, roadmap, and backlog
+> 3. **Learning & certifications** — role-relevant learning paths and certifications to consider
+> 4. **More labs, skills & build resources** — additional scenario-matched workshop labs, Power CAT skills, and curated guidance
+> 5. **Architecture Delivery Pack** — complete **PDF** or **Interactive HTML** report
+> 6. **Nothing else**
 
-The delivery pack contains the decision summary, requirements brief, architecture, implementation blueprint, roadmap, and supporting appendices in one artifact. Generate the selected format immediately. If they choose no download, end without generating a file.
+If the channel supports multiple-choice suggested actions, expose these choices there; otherwise use the numbered Markdown list above. Accept numbers, labels, or a natural-language combination. Do not require the user to choose the Delivery Pack to receive focused detail.
+
+For choices 1–4, answer only the selected sections, proportionate to confirmed discovery:
+
+- **Security, compliance & assurance:** distinguish mandatory controls, applicable standards or certifications to validate, and specialist confirmations. Never claim certification without a verified source.
+- **Implementation plan:** provide the requested architecture, component, data, integration, ALM, roadmap, and backlog detail without repeating the decision summary.
+- **Learning & certifications:** tailor recommendations to the user's role, experience, architecture, and delivery responsibilities. Verify current titles and URLs; separate formal certifications from optional learning.
+- **More labs, skills & build resources:** follow `references/curated-resource-recommendations.md`. Expand beyond the one or two resources already shown, explain why each additional item fits and when to use it, and do not repeat the initial items unless their timing needs clarification.
+
+After a focused expansion, offer the remaining choices briefly without repeating their descriptions. If the user chooses **Architecture Delivery Pack**, ask **PDF or Interactive HTML** unless they already specified the format, then generate it immediately. If they choose **Nothing else**, end without generating a file.
+
+The Delivery Pack contains the decision summary, requirements brief, architecture, implementation blueprint, roadmap, recommended resources, and supporting appendices in one artifact.
 
 ---
 
@@ -714,7 +731,7 @@ The delivery pack contains the decision summary, requirements brief, architectur
 
 Only execute this step after the user requests or selects an Architecture Delivery Pack.
 
-1. Read `references/report-output-spec.md`, `references/requirements-brief-spec.md`, `references/implementation-blueprint-spec.md`, and `references/product-icon-spec.md` in full.
+1. Read `references/report-output-spec.md`, `references/requirements-brief-spec.md`, `references/implementation-blueprint-spec.md`, `references/curated-resource-recommendations.md`, and `references/product-icon-spec.md` in full.
 2. Generate one Architecture Delivery Pack in the selected format in the runtime's temporary working area.
 3. Validate that the file opens, has the selected extension, contains all required sections, and is not empty.
 4. Return the file to the user as a downloadable attachment.

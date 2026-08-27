@@ -6,7 +6,7 @@ Use this specification whenever the user selects an Architecture Delivery Pack.
 
 Generate one cohesive artifact rather than separate requirements, architecture, implementation, roadmap, and assurance downloads. The opening sections must stand alone for decision-makers; detailed delivery and assurance content follows for specialists.
 
-Read `references/requirements-brief-spec.md` and `references/implementation-blueprint-spec.md` before generating the pack. Apply their ID, traceability, acceptance, and quality rules inside the corresponding sections.
+Read `references/requirements-brief-spec.md`, `references/implementation-blueprint-spec.md`, and `references/curated-resource-recommendations.md` before generating the pack. Apply their ID, traceability, acceptance, resource-selection, and quality rules inside the corresponding sections.
 
 ## Required structure
 
@@ -42,6 +42,7 @@ Follow `references/implementation-blueprint-spec.md`. Trace implementation item 
 1. 30/60/90-day outcomes and quick wins
 2. Prioritized phased backlog with dependencies and owners
 3. Definition of done and handover checklist
+4. Recommended learning and build resources selected from the three curated Microsoft repositories, with a scenario-specific reason and roadmap timing for each item
 
 ### Part 6 — Assurance appendices
 
